@@ -15,9 +15,10 @@ impl Discard {
         self.cards.last() 
     }
 
-    pub(crate) fn throw(&mut self, card: PlayCard) {
+    pub(crate) fn throw(&mut self, card: PlayCard) -> &PlayCard {
         if card.is_wild() { self.frozen = true }
-        self.cards.push(card)
+        self.cards.push(card);
+        self.cards.last().unwrap()
     }
 
     pub(crate) fn take(&mut self) -> Vec<PlayCard> {

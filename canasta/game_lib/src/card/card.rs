@@ -26,7 +26,7 @@ impl PlayCard {
         (self.suit == Suit::Clubs || self.suit == Suit::Spades) && self.rank == Rank::Three 
     }
 
-    pub fn get_id(&self) -> u8 {
+    pub fn id(&self) -> u8 {
         self.id
     }
 
