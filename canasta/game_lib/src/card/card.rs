@@ -13,6 +13,30 @@ impl PlayCard {
         let value = calculate_card_value(&suit, &rank);
         Self { id, suit, rank, value }
     }
+
+    pub(crate) fn is_red_three(&self) -> bool {
+        (self.suit == Suit::Diamonds || self.suit == Suit::Hearts) && self.rank == Rank::Three
+    }
+
+    pub(crate) fn is_wild(&self) -> bool {
+        self.rank == Rank::Two || self.rank == Rank::Joker
+    }
+
+    pub(crate) fn is_black_three(&self) -> bool {
+        (self.suit == Suit::Clubs || self.suit == Suit::Spades) && self.rank == Rank::Three 
+    }
+
+    pub fn get_id(&self) -> u8 {
+        self.id
+    }
+
+    pub fn suit(&self) -> &Suit {
+        &self.suit
+    }
+    
+    pub fn rank(&self) -> &Rank {
+        &self.rank  
+    }
 }
 
 fn calculate_card_value(suit: &Suit, rank: &Rank) -> u8 {
@@ -28,4 +52,5 @@ fn calculate_card_value(suit: &Suit, rank: &Rank) -> u8 {
     else if num <= 13 { return 10 }
     else { return 50 }
 }
+
 

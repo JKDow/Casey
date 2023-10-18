@@ -20,12 +20,21 @@ impl Deck {
             let card = PlayCard::new(cards.len() as u8, suit_num.try_into().unwrap(), Rank::Joker);
             cards.push(card);
         }
+        let mut cards = Self { cards }; 
+        cards.shuffle();
+        cards
+    }
+
+    fn shuffle(&mut self) {
         let mut rng = rand::thread_rng();
-        cards.shuffle(&mut rng);
-        Self { cards }
+        self.cards.shuffle(&mut rng);
     }
 
     pub(crate) fn draw(&mut self) -> Option<PlayCard> {
         self.cards.pop()
     } 
+
+    pub(crate) fn remaining(&self) -> usize {
+        self.cards.len()
+    }
 }
