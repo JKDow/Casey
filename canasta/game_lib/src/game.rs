@@ -185,7 +185,11 @@ impl CanastaGame {
 
     /// Discard a card of a given ID for a player
     /// # Overview 
+    /// For the given player number discard the card with the given id in that players hand.
     ///
+    /// If the game state is invalid this will error. This can happen for events such as it not 
+    /// being the entered players turn, the player still having to draw or the given card not 
+    /// being a card ID in the players hand. 
     pub fn discard(&mut self, player: u8, card_id: u8) -> Result<&PlayCard, PlayerActionError> {
         // Check that current game state is valid for request 
         if player != self.current_player { return Err(PlayerActionError::NotPlayerTurn(self.current_player)) }

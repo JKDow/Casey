@@ -5,6 +5,7 @@ pub(crate) struct Player {
     id: u8,
     hand: Vec<PlayCard>,
     melds: [Option<Meld>; 13],
+    temp_melds: [Vec<PlayCard>; 13],
     red_threes: Vec<PlayCard>,
 }
 
@@ -13,21 +14,8 @@ impl Player {
         Self { 
             id,
             hand: vec![],
-            melds: [
-                None, 
-                None, 
-                None, 
-                None, 
-                None, 
-                None, 
-                None, 
-                None, 
-                None, 
-                None, 
-                None, 
-                None, 
-                None
-            ],
+            melds: Default::default(),
+            temp_melds: Default::default(),
             red_threes: vec![],
         }
     }
@@ -65,6 +53,30 @@ impl Player {
             }
         }
         None
+    }
+
+    /// Melds non wild cards into the temp melds 
+    pub(crate) fn meld_normal(&mut self, cards: Vec<u8>) -> Result<(), ()> {
+        let mut to_meld: Vec<PlayCard> = Vec::new();
+        for to_meld_id in &cards {
+            match self.hand.iter().position(|c| c.id() == *to_meld_id) {
+                Some(i) => {
+                    to_meld.push(self.hand.remove(i));
+                    if to_meld.last().unwrap().is_wild() {
+                        self.hand.extend(to_meld.drain(..));
+                        return Err(())
+                    }
+                }
+                None => {
+                    self.hand.extend(to_meld.drain(..));
+                    return Err(())
+                }
+            }
+        }
+        for card in to_meld {
+            self.temp_melds[Into::<u8>::into(card.rank()) as usize].push(card);
+        }
+        Ok(())
     }
 }
 
