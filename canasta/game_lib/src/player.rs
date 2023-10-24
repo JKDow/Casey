@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use crate::{card::{PlayCard, Suit}, card_collections::meld::Meld};
+use crate::{card::{PlayCard, Suit, Rank}, card_collections::meld::Meld, errors::internal_meld_error::InternalMeldError};
 
 pub(crate) struct Player {
     id: u8,
@@ -55,27 +55,76 @@ impl Player {
         None
     }
 
-    /// Melds non wild cards into the temp melds 
-    pub(crate) fn meld_normal(&mut self, cards: Vec<u8>) -> Result<(), ()> {
+    /// attempts to meld a list of card IDs 
+    ///
+    /// If the card cannot be melded or the given ID is not in the players hand 
+    /// then the whole operation will fail and an error will be returned 
+    pub(crate) fn meld(&mut self, cards: Vec<u8>, rank: Rank) -> Result<(), InternalMeldError> {
         let mut to_meld: Vec<PlayCard> = Vec::new();
         for to_meld_id in &cards {
-            match self.hand.iter().position(|c| c.id() == *to_meld_id) {
-                Some(i) => {
-                    to_meld.push(self.hand.remove(i));
-                    if to_meld.last().unwrap().is_wild() {
-                        self.hand.extend(to_meld.drain(..));
-                        return Err(())
-                    }
-                }
+            let hand_index = match self.hand.iter().position(|c| c.id() == *to_meld_id) {
+                Some(i) => i,
                 None => {
-                    self.hand.extend(to_meld.drain(..));
-                    return Err(())
+                    self.hand.extend(to_meld);
+                    return Err(InternalMeldError::InvalidCardId(*to_meld_id))
                 }
+            };
+            let card = &self.hand[hand_index];
+            if card.is_wild() { to_meld.push(self.hand.remove(hand_index)); }
+            else if card.is_red_three() { 
+                self.hand.extend(to_meld.drain(..));
+                return Err(InternalMeldError::InvalidCardToMeld(*to_meld_id))
             }
+            else if *card.rank() != rank {
+                self.hand.extend(to_meld);
+                return Err(InternalMeldError::IncorrectRank(*to_meld_id))
+            }
+            else { to_meld.push(self.hand.remove(hand_index)); }
         }
-        for card in to_meld {
-            self.temp_melds[Into::<u8>::into(card.rank()) as usize].push(card);
+        self.temp_melds[Into::<usize>::into(&rank)].extend(to_meld);
+        Ok(())
+    }
+
+    /// View a temp meld for a given rank 
+    pub(crate) fn view_temp_meld(&self, rank: Rank) -> &[PlayCard] {
+        &self.temp_melds[Into::<usize>::into(&rank)]
+    }
+
+    /// View a list of all temp melds 
+    ///
+    /// The index of the meld aligns with the cards rank
+    pub(crate) fn view_all_temp(&self) -> [&[PlayCard]; 13] {
+        let mut slices: [&[PlayCard]; 13] = Default::default();
+        for (i, meld) in self.temp_melds.iter().enumerate() {
+            slices[i] = meld;
         }
+        slices
+    }
+
+    /// Remove cards of some id from the temp list 
+    ///
+    /// If any fail it will return an error containing the failed IDs
+    pub(crate) fn remove_from_temp(&mut self, cards: Vec<u8>) -> Result<(), Vec<u8>> {
+        let failed_remove: Vec<u8> = cards.iter().filter_map(|&id| {
+            self.temp_melds.iter_mut()
+                .find_map(|meld| meld.iter().position(|c| c.id() == id).map(|pos| meld.remove(pos)))
+                .map_or(Some(id), |card| {
+                    self.hand.push(card);
+                    None
+                })
+        }).collect();
+        failed_remove.is_empty().then(|| ()).ok_or(failed_remove)
+    }
+
+    pub(crate) fn clear_temp_meld(&mut self) { 
+        self.temp_melds.iter_mut().for_each(|meld| {
+            self.hand.extend(meld.drain(..))
+        })
+    }
+
+    pub(crate) fn commit_meld(&mut self) -> Result<(), ()> {
+         
+        
         Ok(())
     }
 }

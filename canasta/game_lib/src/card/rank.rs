@@ -39,6 +39,12 @@ impl From<&Rank> for u8 {
     }
 }
 
+impl From<&Rank> for usize {
+    fn from(value: &Rank) -> Self {
+        Into::<u8>::into(value) as usize
+    }
+}
+
 impl From<u8> for Rank {
     fn from(value: u8) -> Self {
         match value {
