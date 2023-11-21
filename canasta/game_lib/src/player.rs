@@ -123,7 +123,13 @@ impl Player {
     }
 
     pub(crate) fn commit_meld(&mut self) -> Result<(), ()> {
-         
+        // check all melds are valid 
+        //
+        // Check wild numbers are not violated 
+        //
+        // Check there are a valid number of cards in melds 
+        //
+        // Update natural/canasta flags 
         
         Ok(())
     }

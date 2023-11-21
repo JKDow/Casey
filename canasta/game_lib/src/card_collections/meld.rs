@@ -42,4 +42,10 @@ impl Meld {
         todo!("Check this covers all logic");
         Ok(())
     }
+
+    pub(crate) fn push(&self, card: PlayCard) -> Result<(), PlayCard> {
+        if *card.rank() != self.rank { return Err(card); }
+
+        Ok(())
+    }
 }
